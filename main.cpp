@@ -2,6 +2,7 @@
 #include <vector>
 #include <random>
 #include <chrono>
+#include <stdlib.h>
 
 using namespace std;
 
@@ -54,7 +55,7 @@ class Matrix {
       // random number generator
       default_random_engine rng;
       // valores entre [-10,10]
-      uniform_real_distribution<float> dist(-10.0,10.0);
+      uniform_real_distribution<float> dist(-2.0,2.0);
 
       for(int i = 0; i < n; ++i) {
         for(int j = 0; j < n; ++j) {
@@ -85,11 +86,18 @@ class Matrix {
     }
 };
 
-int main() {
+int main(int argc, char** argv) {
+
+  if(argc < 2) {
+    cerr << "Uso: ./main N" << endl;
+    return 1;
+  }
+
+  const int N = atoi(argv[1]);
 
   auto start = chrono::high_resolution_clock::now();
 
-  Matrix* matrix = new Matrix(5);
+  Matrix* matrix = new Matrix(N);
 
   cout << matrix->determinant() << endl;
 
