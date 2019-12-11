@@ -1,5 +1,8 @@
 #include <iostream>
 #include <array>
+#include <algorithm>
+#include <chrono>
+#include <fstream>
 
 template <int n>
 void merge(std::array<int, n>* arr, int start, int end) {
@@ -45,14 +48,37 @@ void MergeSort(std::array<int, n>* arr, int start, int end) {
 
 int main() {
 
-  std::array<int, 8> arr = {5,9,1,3,0,4,3,8};
+  std::ofstream output_data("MergeSortSerial.txt", std::ios::trunc);
 
-  MergeSort<8>(&arr, 0, 7);
+  const int min_n = 10000;
+  const int max_n = 20000;
+  const int step = 500;
+  const int reps = 3;
 
-  for(int i = 0; i < 8; ++i) {
-    std::cout << arr[i] << " ";
+  std::array<int, max_n> arr;
+
+  for(int i = 0; i < max_n; ++i) {
+    arr[i] = i+1;
   }
-  std::cout << std::endl;
+
+  for(int N = min_n; N <= max_n; N += step) {
+    float time_sum = 0;
+    float avg_time;
+
+    for(int i = 0; i < reps; ++i) {
+      std::random_shuffle(arr.begin(), arr.begin()+N);
+
+      auto start = std::chrono::high_resolution_clock::now();
+
+      MergeSort<max_n>(&arr, 0 , N);
+
+      auto stop = std::chrono::high_resolution_clock::now();
+      auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+      time_sum += duration.count()/1000.0;
+    }
+
+    output_data << N << ' ' << (time_sum/reps) << std::endl;
+  }
 
   return 0;
 }

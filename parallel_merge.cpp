@@ -1,6 +1,8 @@
 #include <iostream>
 #include <array>
 #include <algorithm>
+#include <chrono>
+#include <fstream>
 #include <omp.h>
 
 template <int n>
@@ -52,26 +54,38 @@ void MergeSort(std::array<int, n>* arr, int start, int end) {
 
 int main() {
 
-  const int N = 100;
+  std::ofstream output_data("MergeSortParalelo.txt", std::ios::trunc);
 
-  std::array<int, N> arr;
+  const int min_n = 10000;
+  const int max_n = 20000;
+  const int step = 500;
+  const int reps = 3;
 
-  for(int i = 0; i < N; ++i) {
+  std::array<int, max_n> arr;
+
+  #pragma omp parallel for
+  for(int i = 0; i < max_n; ++i) {
     arr[i] = i+1;
   }
 
-  std::random_shuffle(arr.begin(), arr.end());
+  for(int N = min_n; N <= max_n; N += step) {
+    float time_sum = 0;
+    float avg_time;
 
-  for(int i = 0; i < N; ++i) {
-    std::cout << arr[i] << " ";
+    for(int i = 0; i < reps; ++i) {
+      std::random_shuffle(arr.begin(), arr.begin()+N);
+
+      auto start = std::chrono::high_resolution_clock::now();
+
+      MergeSort<max_n>(&arr, 0 , N);
+
+      auto stop = std::chrono::high_resolution_clock::now();
+      auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+      time_sum += duration.count()/1000.0;
+    }
+
+    output_data << N << ' ' << (time_sum/reps) << std::endl;
   }
-
-  MergeSort<N>(&arr, 0, N-1);
-
-  for(int i = 0; i < N; ++i) {
-    std::cout << arr[i] << " ";
-  }
-  std::cout << std::endl;
 
   return 0;
 }
